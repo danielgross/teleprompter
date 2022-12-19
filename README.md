@@ -1,7 +1,5 @@
-# teleprompter
+# Tele-Prompter
+https://user-images.githubusercontent.com/279531/208549243-56047321-4ed1-47d6-bd45-ace74621eab8.mp4
 
 
-
-
-https://user-images.githubusercontent.com/279531/208548560-97184f63-9232-4230-b79d-a4d41250c790.mp4
 
