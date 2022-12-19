@@ -91,6 +91,12 @@ def speech():
                 words = line.decode('utf-8').strip()
                 if words == last_line:
                     continue
+                if words[-1] == '.':
+                    # reset
+                    words = ''
+                # if there is a period, we have a sentence, get everything after first period
+                elif '.' in words:
+                    words = words.split('.')[-1]
                 last_line = words
                 # only keep last 20 words
                 words = ' '.join(words.split()[-20:])
@@ -107,4 +113,6 @@ if __name__ == '__main__':
     else:
         print("Using semantic search for suggestions")
         get_suggestions = get_semantic_suggestions
+    print("Starting up...")
+    get_suggestions("test")
     APP.run(debug=False, port=5001, threaded=True)

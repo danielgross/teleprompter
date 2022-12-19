@@ -14,8 +14,8 @@ $(function(){
         // copy ".suggestion-container" for each suggestion
         var suggestions = data.suggestions.map(function(suggestion){
             var element = suggestion_template.clone();
-            if (suggestion.text.length > 160) {
-                suggestion.text = suggestion.text.substring(0, 160) + "...";
+            if (suggestion.text.length > 150) {
+                suggestion.text = suggestion.text.substring(0, 150) + "...";
             }
             element.find('.card-title').text(suggestion.text);
             
