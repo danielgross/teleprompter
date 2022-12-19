@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='teleprompter.css')}}">
+{% endblock %}
+{% block title %}Teleprompter{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+  <!-- ... -->
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+        <h1>Teleprompter</h1>
+            
+        <div id="current-transcript-container" class="col-sm-5" style="margin-top:10px; height:10rem; border: 1px solid rgba(250, 250, 250, 0.125); padding:1rem 1rem;">
+            <div id="current-transcript">Loading...</div>
+        </div>
+        </div></div>
+        <div class="row suggestion-list row-cols-md-2 g-4 col-sm-5" style="margin-top:20px; width:43.4%;">
+        <div class="suggestion col">
+            <div class="card mb-3" style="max-width: 18rem;">
+                <div class="card-body" style="height:8rem;">
+                  <h5 class="card-title" style="font-size:0.9rem; text-overflow: ellipsis; overflow: hidden;">Loading...</h5>
+                  <!--<h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>-->
+                </div>
+            </div></div>
+        
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{url_for('.static', filename='teleprompter.js')}}"></script>
+{% endblock %}

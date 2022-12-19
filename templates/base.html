@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <title>{% block title %}Teleprompter{% endblock %}</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The page supports only a dark color schemes -->
+    <meta name="color-scheme" content="dark">
+
+    <!-- Replace the Bootstrap CSS with the
+         Bootstrap-Dark Variant CSS -->
+    <link href="{{url_for('.static', filename='bootstrap-night.css')}}" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="{{url_for('.static', filename='style.css')}}">
+    {% block styles %}{% endblock %}
+  </head>
+  <body>
+    {% block navbar %}{% endblock %}
+    {% block content %}{% endblock %}
+    <script src="{{url_for('.static', filename='jquery-3.6.2.js')}}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
