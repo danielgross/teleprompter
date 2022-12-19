@@ -1,4 +1,7 @@
 # Tele-Prompter
+
+* On-device teleprompter that helps you become more charismatic by providing you with various quotes to say:
+* Demo:
 https://user-images.githubusercontent.com/279531/208549243-56047321-4ed1-47d6-bd45-ace74621eab8.mp4
 
 * Requires transformers, torch, the general conda install.
