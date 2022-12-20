@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import os
 import random
 import json
 import pandas as pd
@@ -12,10 +13,22 @@ from transformers import T5ForConditionalGeneration, T5Tokenizer
 APP = Flask(__name__)
 
 
+def download_quotes_file():
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    if not os.path.exists(os.path.join(current_dir, 'quotes.parquet')):
+        print("Downloading quotes.parquet...")
+        # download from huggingface
+        url = "https://huggingface.co/datasets/gobbledegook/quote-embeddings/resolve/main/quotes.parquet"
+        # download to current directory with curl. make sure to save to current directory
+        os.system(f"curl -L {url} -o {current_dir}/quotes.parquet")
+    else:
+        print("Quotes file found")
+
 SEMANTIC_SEARCH = None
 def get_semantic_engine():
     """Get the embedder"""
     print("Loading embedding file...")
+    download_quotes_file()
     quote_file = pd.read_parquet("quotes.parquet") # swap to quotes-small.parquet for a smaller dataset
     embedder = SentenceTransformer('all-MiniLM-L6-v2')
     print("Converting to tensor...")
