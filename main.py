@@ -12,6 +12,10 @@ from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 APP = Flask(__name__)
 
+use_whisper = False
+whisper_location = "" # Location of the streaming capable whisper binary (see: https://github.com/ggerganov/whisper.cpp/tree/master/examples/stream)
+whisper_model_location = "" # location of the model file
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def download_quotes_file():
     current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -33,10 +37,10 @@ def get_semantic_engine():
     embedder = SentenceTransformer('all-MiniLM-L6-v2')
     print("Converting to tensor...")
     corpus = quote_file['quote'].tolist()
-    corpus_embeddings = torch.tensor(quote_file['embeddings'].tolist()).float()
+    corpus_embeddings = torch.tensor(
+        quote_file['embeddings'].tolist()).float().to(device)
     top_k = min(6, len(corpus))
     return collections.namedtuple('Engine', ['embedder', 'corpus', 'corpus_embeddings', 'top_k'])(embedder, corpus, corpus_embeddings, top_k)
-    
 def get_semantic_suggestions(prompt):
     global SEMANTIC_SEARCH
     if not SEMANTIC_SEARCH:
@@ -50,8 +54,11 @@ def get_semantic_suggestions(prompt):
             final.append({'text': SEMANTIC_SEARCH.corpus[idx]})
     return final 
 
+
 MODEL = None
 TOKENIZER = None
+
+
 def get_llm_suggestions(prompt):
     """Call ./llm and return the output"""
     global MODEL, TOKENIZER
@@ -69,23 +76,33 @@ def get_llm_suggestions(prompt):
     return final
 
 
-
 PROCESS = None
 def get_hear():
-    """Call ./hear and return the output"""
     global PROCESS
+    """Call ./hear and return the output"""
     if PROCESS is None or PROCESS.poll() is not None:
-        print("Starting ./hear")
-        # call ./hear in a subprocess as to not block the main thread
-        PROCESS = subprocess.Popen(["./hear"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        if use_whisper:
+            print("Using whisper for transcription")
+            PROCESS = subprocess.Popen(
+                [whisper_location, '-f', '/tmp/whisper.out', '-m',
+                 whisper_model_location])
+            # create file
+            with open('/tmp/whisper.out', 'w') as f:
+                pass
+            return
+        else:
+            print("Starting ./hear")
+            # call ./hear in a subprocess as to not block the main thread
+            PROCESS = subprocess.Popen(
+                ["./hear"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     else:
         print("Using existing ./hear process")
     return PROCESS
-        
 
 def random_words():
     """Mock words generator"""
-    random_words = ['hello', 'world', 'foo', 'bar', 'baz', 'qux', 'quux', 'corge', 'grault', 'garply', 'waldo', 'fred', 'plugh', 'xyzzy', 'thud']
+    random_words = ['hello', 'world', 'foo', 'bar', 'baz', 'qux', 'quux',
+                    'corge', 'grault', 'garply', 'waldo', 'fred', 'plugh', 'xyzzy', 'thud']
     return ' '.join(random.sample(random_words, 10))
 
 @APP.route('/')
@@ -99,9 +116,27 @@ def speech():
         # get the next few words from the generator
         last_line = None
         while True:
+            word_source = None
             hear_process = get_hear()
-            for line in hear_process.stdout:
-                words = line.decode('utf-8').strip()
+            if use_whisper:
+                with open('/tmp/whisper.out', 'r') as f:
+                    words = f.read().strip()
+                    # split on newlines
+                    words = words.split('\n')
+                    word_source = words
+                    if len(words) > 0:
+                        word_source = [words[-1]]
+                    if "BLANK_AUDIO" in words:
+                        continue
+            else:
+                word_source = hear_process.stdout
+            for line in word_source:
+                if use_whisper:
+                    words = line
+                    if len(words) == 0:
+                        continue
+                else:
+                    words = line.decode('utf-8').strip()
                 if words == last_line:
                     continue
                 if words[-1] == '.':
@@ -117,7 +152,6 @@ def speech():
                 output = json.dumps(output)
                 yield 'data: {}\n\n'.format(output)
     return APP.response_class(generate(), mimetype='text/event-stream')
-        
 
 if __name__ == '__main__':
     if 'llm' in sys.argv:
